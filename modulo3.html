@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light text-[16px]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Módulo 3 - Física: Tensão, Corrente e Resistência</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981', // emerald-500
+                        secondary: '#f59e0b', // amber-500
+                        darkbg: '#0f172a', // slate-900
+                        darkcard: '#1e293b' // slate-800
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
+
+    <style>
+        /* Smooth transitions e base CSS */
+        body { scroll-behavior: smooth; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .card { @apply bg-white dark:bg-darkcard rounded-2xl shadow-lg p-5 border border-gray-100 dark:border-gray-700 transition-colors duration-300; }
+        .btn { @apply min-h-[48px] min-w-[48px] flex justify-center items-center rounded-xl font-bold transition-all duration-200 active:scale-95; }
+        .btn-primary { @apply bg-primary text-white hover:bg-emerald-600 shadow-md shadow-emerald-500/30; }
+        .btn-secondary { @apply bg-secondary text-white hover:bg-amber-600 shadow-md shadow-amber-500/30; }
+        
+        /* Efeitos do Circuito Interativo */
+        .wire-off { border-color: #9ca3af !important; }
+        .wire-on { border-color: #f59e0b !important; box-shadow: inset 0 0 10px #f59e0b33, 0 0 10px #f59e0b33; }
+        .bulb-off { color: #9ca3af; text-shadow: none; }
+        
+        /* Animações e Bottom Sheet */
+        .bottom-sheet-up { transform: translateY(0%); }
+        .bottom-sheet-down { transform: translateY(100%); }
+        
+        /* Inputs Customizados */
+        input[type="number"] { @apply w-full bg-gray-50 dark:bg-slate-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-center text-lg font-bold text-gray-800 dark:text-white focus:outline-none focus:border-secondary transition-colors; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkbg text-slate-800 dark:text-slate-100 transition-colors duration-300 pb-24">
+
+    <!-- HEADER ACESSIBILIDADE -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-darkcard/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm p-4">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-400">
+                <i class="fas fa-bolt text-secondary mr-2"></i>Módulo 3
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="changeFontSize(-1)" class="btn bg-gray-100 dark:bg-slate-700 w-12 h-12 text-sm" aria-label="Diminuir Fonte">A-</button>
+                <button onclick="changeFontSize(1)" class="btn bg-gray-100 dark:bg-slate-700 w-12 h-12 text-lg" aria-label="Aumentar Fonte">A+</button>
+                <button onclick="toggleTheme()" class="btn bg-gray-100 dark:bg-slate-700 w-12 h-12" aria-label="Alternar Tema Escuro">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block text-secondary"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <main class="max-w-xl mx-auto p-4 flex flex-col gap-6 mt-4">
+
+        <!-- ETAPA 1: HISTÓRIA E CONTEXTO -->
+        <section id="step1" class="card">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-500">
+                    <i class="fas fa-faucet text-xl"></i>
+                </div>
+                <h2 class="text-xl font-bold">1. A Caixa D'água Elétrica</h2>
+            </div>
+            
+            <div class="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p>Imagine uma caixa d'água ligada a um cano. Na eletricidade, as coisas funcionam de forma muito parecida:</p>
+                <ul class="list-none space-y-3">
+                    <li class="bg-gray-50 dark:bg-slate-700 p-3 rounded-lg border-l-4 border-secondary">
+                        <strong class="text-secondary dark:text-amber-400">Tensão (Volts - U):</strong> É a <b>altura da caixa d'água</b>. Quanto mais alta, mais "força" empurra a água.
+                    </li>
+                    <li class="bg-gray-50 dark:bg-slate-700 p-3 rounded-lg border-l-4 border-blue-500">
+                        <strong class="text-blue-500 dark:text-blue-400">Corrente (Amperes - i):</strong> É a <b>quantidade de água fluindo</b> pelo cano. É o movimento real!
+                    </li>
+                    <li class="bg-gray-50 dark:bg-slate-700 p-3 rounded-lg border-l-4 border-red-500">
+                        <strong class="text-red-500 dark:text-red-400">Resistência (Ohms - R):</strong> É a <b>sujeira ou estreitamento no cano</b>, que dificulta a passagem da água.
+                    </li>
+                </ul>
+            </div>
+
+            <button onclick="unlockStep2()" id="btn-step1" class="btn btn-primary w-full mt-6 text-lg">
+                Entendi a Analogia <i class="fas fa-arrow-down ml-2"></i>
+            </button>
+        </section>
+
+        <!-- ETAPA 2: LABORATÓRIO INTERATIVO -->
+        <section id="step2" class="card hidden opacity-0 transition-opacity duration-500">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+                    <i class="fas fa-microchip text-xl"></i>
+                </div>
+                <h2 class="text-xl font-bold">2. Laboratório do Circuito</h2>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Ligue a bateria e altere a resistência para ver a mágica acontecer!</p>
+
+            <!-- Circuito Visual -->
+            <div class="relative w-full h-48 mb-6 mt-8 flex items-center justify-center">
+                <!-- Fio do Circuito -->
+                <div id="circuit-wire" class="absolute inset-0 border-[6px] border-gray-400 dark:border-gray-600 rounded-2xl wire-off transition-all duration-300"></div>
+                
+                <!-- Bateria (Esquerda) -->
+                <div class="absolute -left-6 bg-white dark:bg-darkcard p-2 rounded-xl flex flex-col items-center">
+                    <i class="fas fa-car-battery text-3xl text-slate-700 dark:text-slate-300"></i>
+                    <span class="text-xs font-bold mt-1">Fonte (U)</span>
+                </div>
+
+                <!-- Lâmpada (Direita) -->
+                <div class="absolute -right-6 bg-white dark:bg-darkcard p-2 rounded-xl flex flex-col items-center">
+                    <i id="circuit-bulb" class="fas fa-lightbulb text-5xl bulb-off transition-all duration-300"></i>
+                </div>
+
+                <!-- Interruptor (Baixo) -->
+                <button onclick="toggleCircuit()" id="btn-switch" class="absolute -bottom-6 bg-white dark:bg-darkcard px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center gap-2 font-bold shadow-sm transition-all active:scale-95">
+                    <i id="icon-switch" class="fas fa-toggle-off text-2xl text-gray-500"></i>
+                    <span id="text-switch">Desligado</span>
+                </button>
+            </div>
+
+            <!-- Controles -->
+            <div class="mt-8 bg-gray-50 dark:bg-slate-700 p-4 rounded-xl">
+                <label class="flex justify-between font-bold mb-2 text-sm">
+                    <span><i class="fas fa-wave-square text-red-500 mr-1"></i>Resistência (R)</span>
+                    <span id="res-label">50 Ω</span>
+                </label>
+                <input type="range" id="res-slider" min="10" max="100" value="50" disabled
+                       class="w-full accent-red-500 disabled:opacity-50" oninput="updateCircuit()">
+            </div>
+
+            <!-- Checkpoint Pergunta -->
+            <div id="quiz-lab" class="mt-6 hidden">
+                <h3 class="font-bold text-md mb-3"><i class="fas fa-question-circle text-primary mr-1"></i> Checkpoint Prático</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">Na sua casa, se a lâmpada da sala queimar, a TV continua funcionando. As ligações nas casas são em:</p>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="checkQuiz('serie')" class="btn bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white border-2 border-transparent">
+                        Em Série
+                    </button>
+                    <button onclick="checkQuiz('paralelo')" class="btn bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white border-2 border-transparent">
+                        Em Paralelo
+                    </button>
+                </div>
+                <p id="quiz-feedback" class="text-sm font-bold text-red-500 mt-3 hidden text-center">Tente novamente! Se fosse em série, tudo apagaria junto.</p>
+            </div>
+        </section>
+
+        <!-- ETAPA 3: DESAFIO MATEMÁTICO -->
+        <section id="step3" class="card hidden opacity-0 transition-opacity duration-500">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <i class="fas fa-calculator text-xl"></i>
+                </div>
+                <h2 class="text-xl font-bold">3. A 1ª Lei de Ohm</h2>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4 flex flex-col items-center justify-center mb-4">
+                <span class="text-sm text-slate-500 dark:text-slate-400 mb-2 uppercase font-bold">A Fórmula Mestra</span>
+                <div id="formula-container" class="text-2xl text-slate-800 dark:text-white"></div>
+            </div>
+
+            <div class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                <p>Um pequeno LED está ligado a uma bateria com Tensão 
+                    <button onclick="collectVar('U')" id="var-u" class="font-bold text-secondary px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded inline-flex items-center transition-all active:scale-95 border border-transparent">
+                        U = 6 V
+                    </button>. 
+                O resistor de proteção tem uma Resistência de 
+                    <button onclick="collectVar('R')" id="var-r" class="font-bold text-primary px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded inline-flex items-center transition-all active:scale-95 border border-transparent">
+                        R = 2 x 10³ Ω
+                    </button>. 
+                <br><br><strong>Toque nos valores acima para coletá-los e calcular a Corrente (i).</strong></p>
+            </div>
+
+            <!-- Inputs da Resposta -->
+            <div id="math-inputs" class="hidden opacity-0 transition-opacity duration-500">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <input type="number" id="ans-base" placeholder="Base" class="w-24">
+                    <span class="font-bold text-xl text-slate-500">x 10</span>
+                    <div class="flex flex-col mb-6">
+                        <input type="number" id="ans-exp" placeholder="Exp" class="w-20 text-sm px-2 py-1 border-b-2 border-gray-300 focus:border-secondary dark:bg-slate-700 bg-gray-50 outline-none text-center font-bold">
+                    </div>
+                    <span class="font-bold text-xl text-slate-500">A</span>
+                </div>
+                <button onclick="checkMath()" class="btn btn-primary w-full text-lg">Verificar Resultado</button>
+                <p id="math-feedback" class="text-center font-bold text-red-500 mt-3 hidden"></p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FAB (Floating Action Button) de Ajuda -->
+    <button onclick="toggleBottomSheet()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center text-2xl z-40 transition-transform active:scale-90 hover:bg-blue-700 focus:outline-none" aria-label="Abrir Ajuda">
+        <i class="fas fa-calculator"></i>
+    </button>
+
+    <!-- BOTTOM SHEET DE AJUDA -->
+    <div id="bottom-sheet-overlay" class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity duration-300" onclick="toggleBottomSheet()"></div>
+    
+    <div id="bottom-sheet" class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-darkcard rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] p-6 bottom-sheet-down transition-transform duration-300 ease-in-out">
+        <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+            <i class="fas fa-lightbulb text-secondary"></i> Dica Matemática
+        </h3>
+        <p class="text-slate-600 dark:text-slate-300 mb-6 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800">
+            <strong>1º Passo:</strong> Divida os números comuns (6 ÷ 2).<br><br>
+            <strong>2º Passo (Regra de Ouro):</strong> Quando uma base 10 (potência) sai do divisor (embaixo) e vai para o resultado (em cima), o <strong>SINAL do expoente INVERTE</strong>. Ou seja, o <b>10³</b> que estava dividindo vira <b>10⁻³</b> no resultado!
+        </p>
+        
+        <h4 class="font-bold text-sm text-slate-500 uppercase mb-3">Calculadoras Úteis</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <a href="https://mathda.com/calculator/pt" target="_blank" class="btn bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-white text-sm">
+                <i class="fas fa-globe mr-2"></i> Web
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=advanced.scientific.calculator.calc991.plus&hl=pt_BR" target="_blank" class="btn bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-white text-sm">
+                <i class="fab fa-android mr-2"></i> Android
+            </a>
+            <a href="https://apps.apple.com/us/app/calculadora-cient%C3%ADfica-fx-991/id1673640297?l=pt_BR" target="_blank" class="btn bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-white text-sm">
+                <i class="fab fa-apple mr-2"></i> iOS
+            </a>
+        </div>
+        <button onclick="toggleBottomSheet()" class="btn w-full bg-gray-200 dark:bg-slate-600 text-slate-800 dark:text-white mt-2">Fechar Ajuda</button>
+    </div>
+
+    <!-- MODAL DE SUCESSO -->
+    <div id="modal-success" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-darkcard rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
+            <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Módulo Concluído!</h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-8">Parabéns! Você dominou a 1ª Lei de Ohm e compreendeu como Tensão, Corrente e Resistência se relacionam.</p>
+            
+            <div class="space-y-3">
+                <a href="index.html" class="btn btn-primary w-full text-lg">Voltar ao Dashboard</a>
+                <button onclick="closeModal()" class="btn bg-gray-200 dark:bg-slate-700 text-slate-800 dark:text-white w-full">Revisar Módulo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT PRINCIPAL -->
+    <script>
+        // ESTADO GLOBAL
+        let currentFontSize = 16;
+        let isCircuitOn = false;
+        let varsCollected = { U: false, R: false };
+
+        // INITIALIZE KaTeX
+        document.addEventListener("DOMContentLoaded", function() {
+            katex.render("i = \\frac{U}{R}", document.getElementById("formula-container"), {
+                throwOnError: false,
+                displayMode: true
+            });
+        });
+
+        // ACESSIBILIDADE
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            if (currentFontSize < 12) currentFontSize = 12;
+            if (currentFontSize > 22) currentFontSize = 22;
+            document.documentElement.style.fontSize = currentFontSize + 'px';
+        }
+
+        // TRANSIÇÕES SUAVES E VISIBILIDADE
+        function show(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('hidden');
+            // Pequeno delay para a animação de opacidade funcionar com display block
+            setTimeout(() => { el.classList.remove('opacity-0'); }, 50);
+        }
+
+        function scrollToEl(id) {
+            setTimeout(() => {
+                document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // ETAPA 1 -> 2
+        function unlockStep2() {
+            const btn = document.getElementById('btn-step1');
+            btn.innerHTML = '<i class="fas fa-check"></i> Concluído';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('bg-gray-300', 'text-gray-600', 'dark:bg-slate-700', 'dark:text-gray-400');
+            btn.disabled = true;
+            
+            show('step2');
+            scrollToEl('step2');
+        }
+
+        // LÓGICA DO LABORATÓRIO (CIRCUITO)
+        function toggleCircuit() {
+            isCircuitOn = !isCircuitOn;
+            const wire = document.getElementById('circuit-wire');
+            const iconSwitch = document.getElementById('icon-switch');
+            const textSwitch = document.getElementById('text-switch');
+            const slider = document.getElementById('res-slider');
+            
+            if (isCircuitOn) {
+                wire.classList.replace('wire-off', 'wire-on');
+                iconSwitch.classList.replace('fa-toggle-off', 'fa-toggle-on');
+                iconSwitch.classList.replace('text-gray-500', 'text-secondary');
+                textSwitch.innerText = "Ligado";
+                slider.disabled = false;
+                
+                // Mostrar a pergunta depois que o aluno interagir ligando o circuito
+                show('quiz-lab');
+                scrollToEl('quiz-lab');
+            } else {
+                wire.classList.replace('wire-on', 'wire-off');
+                iconSwitch.classList.replace('fa-toggle-on', 'fa-toggle-off');
+                iconSwitch.classList.replace('text-secondary', 'text-gray-500');
+                textSwitch.innerText = "Desligado";
+                slider.disabled = true;
+            }
+            updateCircuit();
+        }
+
+        function updateCircuit() {
+            const slider = document.getElementById('res-slider');
+            const resLabel = document.getElementById('res-label');
+            const bulb = document.getElementById('circuit-bulb');
+            
+            resLabel.innerText = slider.value + " Ω";
+            
+            if (isCircuitOn) {
+                // Brilho inversamente proporcional à resistência
+                // Resistência 10 -> Brilho forte. Resistência 100 -> Brilho fraco.
+                const brightness = 100 - parseInt(slider.value) + 20; // range base para opacidade/sombra
+                
+                bulb.classList.remove('bulb-off');
+                bulb.style.color = '#f59e0b';
+                bulb.style.filter = `drop-shadow(0 0 ${brightness/3}px #f59e0b) brightness(${brightness/50})`;
+            } else {
+                bulb.classList.add('bulb-off');
+                bulb.style.color = '';
+                bulb.style.filter = 'none';
+            }
+        }
+
+        // CHECKPOINT MULTIPLA ESCOLHA
+        function checkQuiz(answer) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (answer === 'paralelo') {
+                feedback.classList.remove('hidden');
+                feedback.classList.replace('text-red-500', 'text-emerald-500');
+                feedback.innerHTML = '<i class="fas fa-check-circle"></i> Exato! Em paralelo os circuitos são independentes.';
+                
+                setTimeout(() => {
+                    show('step3');
+                    scrollToEl('step3');
+                }, 800);
+            } else {
+                feedback.classList.remove('hidden', 'text-emerald-500');
+                feedback.classList.add('text-red-500');
+                feedback.innerHTML = 'Tente novamente! Se fosse em série, tudo apagaria junto.';
+            }
+        }
+
+        // ETAPA 3: MATEMÁTICA E COLETA DE VARIÁVEIS
+        function collectVar(variable) {
+            varsCollected[variable] = true;
+            const btn = document.getElementById(variable === 'U' ? 'var-u' : 'var-r');
+            
+            // Estilo visual de coletado
+            btn.classList.add('border-current');
+            btn.innerHTML += ' <i class="fas fa-check ml-1"></i>';
+            btn.disabled = true;
+
+            // Se as duas foram coletadas, abre os inputs
+            if (varsCollected.U && varsCollected.R) {
+                show('math-inputs');
+                scrollToEl('math-inputs');
+            }
+        }
+
+        function checkMath() {
+            const base = document.getElementById('ans-base').value;
+            const exp = document.getElementById('ans-exp').value;
+            const feedback = document.getElementById('math-feedback');
+
+            // Resposta correta: 6 / 2 = 3. 10^3 sobe virando 10^-3.
+            if (base === '3' && exp === '-3') {
+                feedback.classList.add('hidden');
+                
+                // SALVANDO PROGRESSO CRÍTICO CONFORME SOLICITADO
+                localStorage.setItem('cps_mod3', JSON.stringify({concluido: true, score: 100}));
+                
+                openModal();
+            } else {
+                feedback.classList.remove('hidden');
+                feedback.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Incorreto. Lembre-se: 6 ÷ 2 para a base, e inverta o sinal do expoente ao subir!';
+                // Treme os inputs (Feedback de Erro)
+                document.getElementById('math-inputs').classList.add('animate-bounce');
+                setTimeout(() => document.getElementById('math-inputs').classList.remove('animate-bounce'), 500);
+            }
+        }
+
+        // BOTTOM SHEET (FAB)
+        let isSheetOpen = false;
+        function toggleBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            const overlay = document.getElementById('bottom-sheet-overlay');
+            
+            if (!isSheetOpen) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                sheet.classList.remove('bottom-sheet-down');
+                sheet.classList.add('bottom-sheet-up');
+            } else {
+                overlay.classList.add('opacity-0');
+                sheet.classList.remove('bottom-sheet-up');
+                sheet.classList.add('bottom-sheet-down');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+            isSheetOpen = !isSheetOpen;
+        }
+
+        // MODAL FINAL
+        function openModal() {
+            const modal = document.getElementById('modal-success');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-success');
+            const content = document.getElementById('modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                // Rola para o topo mantendo tudo aberto para revisão
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300);
+        }
+    </script>
+</body>
+</html>

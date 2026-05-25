@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chefe Final - Bateria de Física</title>
+    
+    <!-- Tailwind CSS (Mobile-First UI e Dark Theme) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX CSS e JS para Fórmulas Matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* Ajustes finos para Mobile e KaTeX */
+        body { -webkit-tap-highlight-color: transparent; }
+        .katex { font-size: 1.15em !important; }
+        
+        /* Remove setinhas dos inputs number (Spinners) */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-blue-500 selection:text-white">
+
+    <!-- CABEÇALHO SUPERIOR -->
+    <header id="top-header" class="w-full p-4 bg-slate-800 shadow-md flex justify-between items-center sticky top-0 z-10 border-b border-slate-700">
+        <button onclick="window.location.href='index.html'" class="text-sm bg-slate-700 hover:bg-slate-600 border border-slate-600 px-3 py-1.5 rounded transition-colors font-medium">
+            ⬅ Voltar
+        </button>
+        <div class="font-bold text-lg tracking-wide text-slate-200" id="ui-progress">1/50</div>
+        <div class="text-amber-400 font-extrabold flex items-center gap-1 bg-slate-900 px-3 py-1 rounded-full border border-slate-700" id="ui-xp">
+            ⭐ <span id="xp-text">0 XP</span>
+        </div>
+    </header>
+
+    <!-- ÁREA DE JOGO (QUIZ) -->
+    <main id="game-container" class="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 w-full max-w-xl mx-auto hidden">
+        
+        <!-- Barra de Progresso Visual -->
+        <div class="w-full bg-slate-700 h-2 rounded-full mb-6 overflow-hidden">
+            <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 2%;"></div>
+        </div>
+
+        <div class="bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl w-full border border-slate-700 relative">
+            <!-- Título / Módulo -->
+            <div id="question-module" class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4">Módulo</div>
+            
+            <!-- Enunciado Gerado via JS e interpretado pelo KaTeX -->
+            <div id="question-text" class="text-base sm:text-lg mb-8 leading-relaxed text-slate-200">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+
+            <!-- Inputs: Notação Científica -->
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 mb-6">
+                <p class="text-center text-xs text-slate-400 mb-3 uppercase tracking-widest">Sua Resposta</p>
+                <div class="flex items-end justify-center space-x-3">
+                    <!-- Base (aceita decimais) -->
+                    <div class="flex flex-col items-center">
+                        <input type="number" step="any" id="input-base" class="w-24 sm:w-28 p-3 bg-slate-800 border border-slate-600 rounded-lg text-center text-xl font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-500" placeholder="Base">
+                    </div>
+                    
+                    <!-- Constante x 10 -->
+                    <span class="text-xl sm:text-2xl font-bold pb-2 sm:pb-3 text-slate-300">. 10</span>
+                    
+                    <!-- Expoente (elevado visualmente, apenas inteiros) -->
+                    <div class="flex flex-col items-center pb-5 sm:pb-6">
+                        <input type="number" step="1" id="input-exp" class="w-16 sm:w-20 p-2 bg-slate-800 border border-slate-600 rounded-lg text-center text-base sm:text-lg font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-slate-500" placeholder="Exp">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Resposta -->
+            <button onclick="checkAnswer()" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg sm:text-xl transition-all shadow-[0_4px_20px_rgba(37,99,235,0.4)] active:scale-95">
+                Confirmar Resposta
+            </button>
+
+            <!-- Feedback Em Tempo Real -->
+            <div id="feedback-msg" class="mt-5 p-3 rounded-lg text-center font-semibold text-sm sm:text-base hidden transition-all"></div>
+        </div>
+    </main>
+
+    <!-- O GRANDE FINAL (TROFÉU) -->
+    <section id="trophy-screen" class="hidden flex-col items-center justify-center flex-grow p-6 text-center w-full max-w-lg mx-auto">
+        <div class="text-8xl sm:text-9xl mb-6 animate-bounce" style="animation-duration: 2s;">🏆</div>
+        <h1 class="text-3xl sm:text-4xl font-black mb-3 text-amber-400 drop-shadow-lg">Mestre Eletro-Físico</h1>
+        <p class="text-lg text-slate-300 mb-8">Você provou seu valor ao completar a Bateria Definitiva!</p>
+        
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 w-full mb-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-blue-500 opacity-5 blur-2xl"></div>
+            <div class="relative z-10">
+                <div class="text-sm text-slate-400 uppercase tracking-widest font-bold">XP Total Conquistado</div>
+                <div class="text-5xl sm:text-6xl font-black text-blue-400 mt-3 drop-shadow-md" id="final-score">0 XP</div>
+            </div>
+        </div>
+        
+        <button onclick="resetGame()" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 px-8 py-4 rounded-xl font-bold text-lg transition-all w-full active:scale-95 text-slate-200">
+            Reiniciar Bateria
+        </button>
+    </section>
+
+    <!-- MODAL DE AVISO INICIAL -->
+    <div id="start-modal" class="fixed inset-0 bg-slate-950 bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-slate-800 p-8 rounded-2xl max-w-sm w-full mx-4 border border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)] text-center relative overflow-hidden">
+            <div class="text-6xl mb-6">⚠️</div>
+            <h2 class="text-2xl font-black mb-4 text-white">Regras de Sobrevivência</h2>
+            <div class="text-slate-300 mb-8 leading-relaxed space-y-4 text-sm sm:text-base">
+                <p>Separe <strong>Papel e Lápis!</strong> Evite o erro fatal de fazer contas complexas de cabeça.</p>
+                <p class="p-3 bg-slate-900 rounded-lg border border-slate-700 text-left text-sm">
+                    🔸 Acerto de primeira: <span class="text-green-400 font-bold">+100 XP</span><br>
+                    🔸 Cada erro custa: <span class="text-red-400 font-bold">-10 XP</span>
+                </p>
+            </div>
+            <button onclick="startGame()" class="w-full bg-amber-500 text-slate-900 hover:bg-amber-400 py-4 rounded-xl font-black text-lg transition-all active:scale-95 shadow-lg">
+                Entendi, Começar!
+            </button>
+        </div>
+    </div>
+
+    <!-- MOTOR DE EXERCÍCIOS / LÓGICA (JS) -->
+    <script>
+        // Chaves de Persistência no LocalStorage
+        const STATE_KEY = 'cps_battery_state';
+        const COMPLETE_KEY = 'cps_battery_completed';
+
+        // Estado do Jogo (Persistente)
+        let state = {
+            currentIndex: 0,
+            totalXP: 0,
+            currentQuestionXP: 100,
+            questions: []
+        };
+
+        /* ==========================================
+           1. BANCO DE GERADORES ALEATÓRIOS MATEMÁTICOS
+           Gera objetos { module, text, value (resposta exata) }
+        ========================================== */
+        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+        const generators = [
+            // [Módulo 1] Eletrostática (Lei de Coulomb)
+            // F = K * Q1 * Q2 / d²
+            () => {
+                const q1 = rand(1, 9); // microCoulombs (10^-6)
+                const q2 = rand(1, 9);
+                const d = rand(1, 4);  // x 10^-1 m (decímetros para dar divisão exata/simples)
+                
+                // Cálculo exato: (9 * 10^9 * q1 * 10^-6 * q2 * 10^-6) / (d * 10^-1)^2
+                // = (9 * q1 * q2 / d^2) * 10^-1
+                const force = (9 * q1 * q2) / (d * d) * Math.pow(10, -1);
+                
+                return {
+                    module: "Eletrostática",
+                    text: `Duas cargas puntiformes $Q_1 = ${q1} \\times 10^{-6} \\text{ C}$ e $Q_2 = ${q2} \\times 10^{-6} \\text{ C}$ estão separadas por uma distância de $d = ${d} \\times 10^{-1} \\text{ m}$ no vácuo.<br><br>Sabendo que a constante eletrostática é $k_0 = 9 \\times 10^9 \\text{ N}\\cdot\\text{m}^2/\\text{C}^2$, determine a força elétrica (em Newtons) entre elas.`,
+                    value: force
+                };
+            },
+
+            // [Módulo 2] Eletromagnetismo (Campo Magnético Fio Retilíneo)
+            // B = µ0 * I / (2 * pi * d) => onde µ0 = 4*pi*10^-7 => B = 2*10^-7 * I / d
+            () => {
+                const i = rand(2, 9);
+                const d = rand(1, 5); // x 10^-1 m
+                
+                // Cálculo exato: 2 * 10^-7 * i / (d * 10^-1) = (2 * i / d) * 10^-6
+                const b = (2 * i) / d * Math.pow(10, -6);
+                
+                return {
+                    module: "Eletromagnetismo (Oersted/Biot-Savart)",
+                    text: `Um fio longo e retilíneo é percorrido por uma corrente elétrica de $I = ${i} \\text{ A}$.<br><br>Determine a intensidade do campo magnético $B$ (em Tesla) a uma distância de $d = ${d} \\times 10^{-1} \\text{ m}$ do fio.<br><br><em>(Dado: a permeabilidade magnética é $\\mu_0 = 4\\pi \\times 10^{-7} \\text{ T}\\cdot\\text{m/A}$)</em>`,
+                    value: b
+                };
+            },
+
+            // [Módulo 3] Eletrodinâmica (1ª Lei de Ohm)
+            // I = U / R
+            () => {
+                const u = rand(1, 9); // Multiplicado internamente por 10^2
+                const r = rand(1, 5); // Multiplicado internamente por 10^1
+                
+                // I = (u * 10^2) / (r * 10^1) = (u / r) * 10^1
+                const current = (u / r) * 10;
+                
+                return {
+                    module: "Eletrodinâmica (Leis de Ohm)",
+                    text: `Um resistor ôhmico é submetido a uma tensão de $U = ${u} \\times 10^2 \\text{ V}$.<br><br>Sabendo que a sua resistência elétrica é de $R = ${r} \\times 10^1 \\, \\Omega$, calcule a corrente elétrica $I$ (em Amperes) que atravessa o componente.`,
+                    value: current
+                };
+            },
+
+            // [Módulo 4] Indução (Transformadores)
+            // Us = Up * (Ns / Np)
+            () => {
+                const up = rand(1, 4) * 10;   // ex: 20 -> Representará 20 * 10^0 V (ou melhor, deixar em notação natural que se alinha com base x 10^exp)
+                const np = rand(2, 5) * 100;  // Espiras primário
+                const ns = rand(1, 5) * 1000; // Espiras secundário
+                
+                const us = up * (ns / np);
+                
+                return {
+                    module: "Indução (Transformadores Ideais)",
+                    text: `Um transformador ideal possui $N_p = ${np}$ espiras no enrolamento primário e $N_s = ${ns}$ espiras no secundário.<br><br>Se o primário for ligado a uma fonte de tensão $U_p = ${up} \\text{ V}$, qual será o valor da tensão induzida $U_s$ no secundário?`,
+                    value: us
+                };
+            },
+
+            // [Módulo 5] Potência e Consumo de Energia
+            // E = P * t (Atenção para conversão de horas para segundos para a resposta ser em Joules)
+            () => {
+                const p = rand(1, 5); // Multiplicador para Kw (x 10^3 W)
+                const t = rand(1, 8); // Horas (x 10^0 h)
+                
+                // E (Joules) = P(Watts) * T(Segundos)
+                // E = (p * 10^3) * (t * 3600) = p * t * 3.6 * 10^6
+                const e = p * t * 3.6 * Math.pow(10, 6);
+                
+                return {
+                    module: "Energia e Potência Elétrica",
+                    text: `Uma máquina de solda elétrica possui potência de operação de $P = ${p} \\times 10^3 \\text{ W}$ e permanece ligada durante $\\Delta t = ${t} \\text{ h}$.<br><br>Determine o consumo de energia elétrica do aparelho, em <strong>Joules (J)</strong>.<br><em>(Lembre-se: $1\\text{ h} = 3600\\text{ s}$)</em>`,
+                    value: e
+                };
+            }
+        ];
+
+        /* ==========================================
+           2. GESTÃO DO ESTADO E FLUXO DO JOGO
+        ========================================== */
+        
+        // Gera o Pool exato de 50 questões (10 de cada módulo, intercaladas)
+        function generateFiftyQuestions() {
+            let pool = [];
+            for (let i = 0; i < 10; i++) { // 10 rodadas
+                for (let j = 0; j < 5; j++) { // 5 módulos por rodada
+                    pool.push(generators[j]());
+                }
+            }
+            return pool;
+        }
+
+        function initApp() {
+            // Verifica se o chefe final já foi derrotado
+            if (localStorage.getItem(COMPLETE_KEY) === 'true') {
+                state.totalXP = localStorage.getItem('cps_battery_final_xp') || '0';
+                showTrophyScreen();
+                return;
+            }
+
+            // Tenta resgatar estado em andamento
+            const savedState = localStorage.getItem(STATE_KEY);
+            if (savedState) {
+                try {
+                    state = JSON.parse(savedState);
+                    // Retoma jogo (esconde modal)
+                    document.getElementById('start-modal').classList.add('hidden');
+                    document.getElementById('game-container').classList.remove('hidden');
+                    renderQuestion();
+                    return;
+                } catch(e) {
+                    console.error("Erro ao ler localStorage", e);
+                }
+            }
+
+            // Caso Novo Jogo (Primeira vez)
+            state.questions = generateFiftyQuestions();
+            state.currentIndex = 0;
+            state.totalXP = 0;
+            state.currentQuestionXP = 100;
+            saveState();
+            // Mantém modal aberto para o usuário clicar em "Começar"
+        }
+
+        function startGame() {
+            document.getElementById('start-modal').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function saveState() {
+            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        }
+
+        /* ==========================================
+           3. RENDERIZAÇÃO DA UI / MOTOR KATEX
+        ========================================== */
+        function renderQuestion() {
+            const q = state.questions[state.currentIndex];
+            
+            // Atualiza Header
+            document.getElementById('ui-progress').innerText = `${state.currentIndex + 1}/50`;
+            document.getElementById('xp-text').innerText = `${state.totalXP} XP`;
+            
+            // Atualiza Progress Bar (0 a 100%)
+            const percent = ((state.currentIndex) / 50) * 100;
+            document.getElementById('progress-bar').style.width = `${Math.max(2, percent)}%`;
+
+            // Atualiza Textos
+            document.getElementById('question-module').innerText = `Módulo ${ (state.currentIndex % 5) + 1 }/5 - ${q.module}`;
+            const qTextDiv = document.getElementById('question-text');
+            qTextDiv.innerHTML = q.text;
+
+            // Renderiza Fórmulas KaTeX no Enunciado
+            renderMathInElement(qTextDiv, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false} // Nosso gerador usa $...$ inline
+                ],
+                throwOnError: false
+            });
+
+            // Limpa Inputs e Feedback para a nova questão
+            document.getElementById('input-base').value = '';
+            document.getElementById('input-exp').value = '';
+            document.getElementById('input-base').focus();
+            hideFeedback();
+            
+            // Restaura XP da questão para 100
+            state.currentQuestionXP = 100;
+        }
+
+        /* ==========================================
+           4. LÓGICA DE VALIDAÇÃO (CRÍTICO)
+        ========================================== */
+        function checkAnswer() {
+            const baseInputStr = document.getElementById('input-base').value.replace(',','.');
+            const expInputStr = document.getElementById('input-exp').value;
+
+            if (baseInputStr.trim() === '' || expInputStr.trim() === '') {
+                showFeedback("Por favor, preencha tanto a Base quanto o Expoente.", "warn");
+                return;
+            }
+
+            const userBase = parseFloat(baseInputStr);
+            const userExp = parseInt(expInputStr, 10);
+
+            if (isNaN(userBase) || isNaN(userExp)) {
+                showFeedback("Insira apenas números válidos.", "warn");
+                return;
+            }
+
+            // O motor não obriga que o aluno normalize exatamente (ex: 9 x 10^-3 ou 0.9 x 10^-2 são aceitos).
+            // Comparamos o VALOR AVALIADO final com a resposta gerada com uma margem mínima de tolerância matemática (2% para cobrir arredondamentos).
+            const userValue = userBase * Math.pow(10, userExp);
+            const correctValue = state.questions[state.currentIndex].value;
+            
+            // Tolerância de 2% para dízimas / arredondamentos
+            const diff = Math.abs(userValue - correctValue);
+            const margin = Math.abs(correctValue) * 0.02;
+
+            if (diff <= margin) {
+                handleSuccess();
+            } else {
+                handleError();
+            }
+        }
+
+        function handleSuccess() {
+            state.totalXP += state.currentQuestionXP;
+            
+            // Feedback Visual
+            const isFlawless = (state.currentQuestionXP === 100);
+            const msg = isFlawless ? `🎯 FLAWLESS! CÁLCULO PERFEITO (+100 XP)` : `✔️ CORRETO! (+${state.currentQuestionXP} XP)`;
+            showFeedback(msg, "success");
+            
+            // Trava botão para evitar duplo clique
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            saveState();
+
+            // Avança após delay
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                state.currentIndex++;
+                
+                if (state.currentIndex >= 50) {
+                    completeGame();
+                } else {
+                    renderQuestion();
+                }
+            }, 1800);
+        }
+
+        function handleError() {
+            // Penalidade
+            state.currentQuestionXP -= 10;
+            if (state.currentQuestionXP < 10) state.currentQuestionXP = 10;
+            
+            saveState();
+
+            showFeedback(`❌ Cálculo incorreto. Reveja a álgebra (-10 XP).<br><span class="text-xs font-normal">Tente novamente! (Questão valendo ${state.currentQuestionXP} XP)</span>`, "error");
+        }
+
+        function showFeedback(htmlMessage, type) {
+            const fb = document.getElementById('feedback-msg');
+            fb.innerHTML = htmlMessage;
+            fb.classList.remove('hidden', 'bg-green-600', 'bg-red-600', 'bg-amber-600', 'text-white');
+            
+            if (type === 'success') fb.classList.add('bg-green-600', 'text-white');
+            else if (type === 'error') fb.classList.add('bg-red-600', 'text-white');
+            else if (type === 'warn') fb.classList.add('bg-amber-600', 'text-white');
+            
+            // Pequena animação
+            fb.classList.remove('scale-95', 'opacity-0');
+            fb.classList.add('scale-100', 'opacity-100');
+        }
+
+        function hideFeedback() {
+            const fb = document.getElementById('feedback-msg');
+            fb.classList.add('hidden');
+        }
+
+        /* ==========================================
+           5. FINALIZAÇÃO E CONTROLE
+        ========================================== */
+        function completeGame() {
+            localStorage.setItem(COMPLETE_KEY, 'true');
+            localStorage.setItem('cps_battery_final_xp', state.totalXP);
+            localStorage.removeItem(STATE_KEY); // Limpa save do progresso atual
+            showTrophyScreen();
+        }
+
+        function showTrophyScreen() {
+            document.getElementById('top-header').classList.add('hidden');
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('start-modal').classList.add('hidden');
+            
+            document.getElementById('trophy-screen').classList.remove('hidden');
+            document.getElementById('trophy-screen').classList.add('flex');
+            
+            // Anima contagem de XP no final
+            document.getElementById('final-score').innerText = `${state.totalXP} XP`;
+        }
+
+        function resetGame() {
+            if(confirm("Tem certeza que deseja apagar seu progresso e reiniciar a bateria de 50 questões?")) {
+                localStorage.removeItem(COMPLETE_KEY);
+                localStorage.removeItem(STATE_KEY);
+                localStorage.removeItem('cps_battery_final_xp');
+                location.reload();
+            }
+        }
+
+        function exitToDashboard() {
+            // Em um app real, faria location.href = 'index.html'
+            alert("Progresso salvo com sucesso! No app final, você voltaria ao Dashboard agora.");
+        }
+
+        // Permite "Enter" submeter a resposta se os campos estiverem focados
+        document.addEventListener('keydown', function(event) {
+            if(event.key === 'Enter') {
+                // Previne disparar se o modal estiver aberto
+                if(!document.getElementById('start-modal').classList.contains('hidden')) {
+                    startGame();
+                } else if(!document.getElementById('game-container').classList.contains('hidden')) {
+                    checkAnswer();
+                }
+            }
+        });
+
+        // Bootstrap App ao carregar DOM
+        window.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>

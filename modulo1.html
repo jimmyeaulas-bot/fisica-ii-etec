@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light text-[16px] transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Módulo 1: Princípios da Eletricidade</title>
+
+    <!-- Tailwind CSS (via CDN) com Configuração do Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6', // blue-500
+                        primaryDark: '#2563eb', // blue-600
+                        success: '#22c55e', // green-500
+                        successDark: '#16a34a' // green-600
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX CSS e JS (Renderização Explícita) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <style>
+        /* Ajustes Mobile-First e Animações */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .min-touch-target { min-height: 48px; min-width: 48px; }
+        
+        /* Animações CSS Customizadas */
+        .fade-in { animation: fadeIn 0.5s ease-in forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Eletrostática Esferas Animação */
+        .sphere { transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .repel-left { transform: translateX(-30px); }
+        .repel-right { transform: translateX(30px); }
+        .attract-left { transform: translateX(20px); }
+        .attract-right { transform: translateX(-20px); }
+
+        /* Partículas de Elétrons */
+        .electron { transition: all 0.8s ease-in-out; opacity: 0; }
+        .moving-electron { transform: translateX(80px) translateY(10px); opacity: 1; color: #3b82f6; }
+
+        /* Bottom Sheet */
+        .bottom-sheet { transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .bottom-sheet.open { transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 pb-24">
+
+    <!-- HEADER ACESSÍVEL (Sticky) -->
+    <header class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center transition-colors duration-300">
+        <h1 class="font-bold text-lg leading-tight flex-1">Física <br><span class="text-primary text-sm">Módulo 1</span></h1>
+        <div class="flex gap-2">
+            <!-- Botões de Acessibilidade (Tamanho da Fonte) -->
+            <button onclick="alterarFonte(-2)" class="min-touch-target bg-gray-200 dark:bg-gray-700 rounded-full flex justify-center items-center font-bold" aria-label="Diminuir texto">A-</button>
+            <button onclick="alterarFonte(2)" class="min-touch-target bg-gray-200 dark:bg-gray-700 rounded-full flex justify-center items-center font-bold" aria-label="Aumentar texto">A+</button>
+            <!-- Alternador Dark/Light Mode -->
+            <button onclick="toggleTheme()" class="min-touch-target bg-gray-200 dark:bg-gray-700 rounded-full flex justify-center items-center" aria-label="Alternar Tema">
+                <i id="theme-icon" class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="p-4 max-w-lg mx-auto space-y-6">
+
+        <!-- ETAPA 1: Contexto e História -->
+        <section id="etapa1" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 card-step">
+            <div class="flex items-center gap-3 mb-4 text-primary">
+                <i class="fas fa-book-open text-2xl"></i>
+                <h2 class="text-xl font-bold">1. A Origem</h2>
+            </div>
+            <p class="mb-4">
+                Na Grécia Antiga, Tales de Mileto percebeu que ao atritar uma resina fóssil chamada <strong>Âmbar</strong> (em grego: <em>élektron</em>) com pele de animal, ela passava a atrair pequenos objetos como palhas e penas.
+            </p>
+            <p class="mb-6">
+                Esse foi o primeiro registro da eletricidade na história humana!
+            </p>
+            <button onclick="liberarEtapa2()" class="min-touch-target w-full bg-primary hover:bg-primaryDark text-white font-bold rounded-xl shadow-lg transition-colors">
+                Entendi a História
+            </button>
+        </section>
+
+        <!-- ETAPA 2: Laboratório Interativo (Eletrostática) -->
+        <section id="etapa2" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 hidden card-step">
+            <div class="flex items-center gap-3 mb-4 text-primary">
+                <i class="fas fa-flask text-2xl"></i>
+                <h2 class="text-xl font-bold">2. Laboratório Interativo</h2>
+            </div>
+            
+            <!-- Interação 1: Atrito -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-6">
+                <h3 class="font-bold mb-2">Interação: Eletrização por Atrito</h3>
+                <div class="flex justify-around items-center mb-4 h-20 relative">
+                    <div id="item-la" class="w-16 h-16 bg-orange-200 dark:bg-orange-800 rounded-full flex items-center justify-center font-bold text-xs border-2 border-orange-400">Lã</div>
+                    <div class="absolute flex gap-1">
+                        <span class="electron font-bold text-xl">-</span>
+                        <span class="electron font-bold text-xl delay-75">-</span>
+                        <span class="electron font-bold text-xl delay-150">-</span>
+                    </div>
+                    <div id="item-ambar" class="w-16 h-16 bg-yellow-400 dark:bg-yellow-600 rounded flex items-center justify-center font-bold text-xs border-2 border-yellow-500">Âmbar</div>
+                </div>
+                <button onclick="animarAtrito()" class="min-touch-target w-full bg-blue-100 dark:bg-blue-900 text-primary dark:text-blue-300 font-bold rounded-xl transition-colors">
+                    Friccionar Lã no Âmbar
+                </button>
+                <p id="msg-atrito" class="text-sm mt-3 text-center hidden text-success font-bold">Elétrons (-) passaram para o Âmbar!</p>
+            </div>
+
+            <!-- Interação 2: Forças -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-6">
+                <h3 class="font-bold mb-2">Interação: Forças de Interação</h3>
+                <div class="flex justify-center gap-8 mb-4">
+                    <select id="carga1" class="p-2 rounded bg-white dark:bg-gray-600 border dark:border-gray-500 min-touch-target">
+                        <option value="pos">+</option>
+                        <option value="neg">-</option>
+                    </select>
+                    <select id="carga2" class="p-2 rounded bg-white dark:bg-gray-600 border dark:border-gray-500 min-touch-target">
+                        <option value="pos">+</option>
+                        <option value="neg">-</option>
+                    </select>
+                </div>
+                <div class="flex justify-center gap-4 h-24 items-center mb-4 relative overflow-hidden bg-white dark:bg-gray-800 rounded-lg">
+                    <div id="esfera1" class="sphere w-12 h-12 rounded-full bg-red-400 flex items-center justify-center text-white font-bold text-xl shadow-md">+</div>
+                    <div id="esfera2" class="sphere w-12 h-12 rounded-full bg-red-400 flex items-center justify-center text-white font-bold text-xl shadow-md">+</div>
+                </div>
+                <p id="msg-forcas" class="text-center font-bold mb-4 h-6 text-primary"></p>
+                <button onclick="testarForcas()" class="min-touch-target w-full bg-blue-100 dark:bg-blue-900 text-primary dark:text-blue-300 font-bold rounded-xl transition-colors">
+                    Observar Força
+                </button>
+            </div>
+
+            <!-- Checkpoint Múltipla Escolha -->
+            <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-primary p-4 rounded-r-xl">
+                <h3 class="font-bold mb-3">Checkpoint</h3>
+                <p class="mb-3">Por que cabos de energia são de cobre encapados com borracha?</p>
+                <div class="space-y-2">
+                    <label class="flex items-center p-3 bg-white dark:bg-gray-800 rounded shadow-sm min-touch-target cursor-pointer">
+                        <input type="radio" name="chk1" value="errado" class="w-5 h-5 mr-3 text-primary">
+                        <span>O cobre esfria o fio e a borracha conduz energia.</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-white dark:bg-gray-800 rounded shadow-sm min-touch-target cursor-pointer">
+                        <input type="radio" name="chk1" value="certo" class="w-5 h-5 mr-3 text-primary">
+                        <span>Cobre conduz elétrons, borracha isola para não dar choque.</span>
+                    </label>
+                </div>
+                <p id="feedback-chk1" class="text-sm font-bold mt-2 hidden"></p>
+                <button onclick="verificarChk1()" class="mt-4 min-touch-target w-full bg-success hover:bg-successDark text-white font-bold rounded-xl shadow transition-colors">
+                    Confirmar Resposta
+                </button>
+            </div>
+        </section>
+
+        <!-- ETAPA 3: A Dança dos Elétrons -->
+        <section id="etapa3" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 hidden card-step">
+            <div class="flex items-center gap-3 mb-4 text-primary">
+                <i class="fas fa-bolt text-2xl"></i>
+                <h2 class="text-xl font-bold">3. A Dança dos Elétrons</h2>
+            </div>
+            <p class="mb-4">
+                Quando cargas se movem de forma ordenada, surge a <strong>Corrente Elétrica</strong>.
+            </p>
+            <p class="mb-4">
+                A 1ª Lei de Ohm nos diz como a Corrente (I), a Tensão (U) e a Resistência (R) se relacionam:
+            </p>
+            
+            <!-- Container do KaTeX para renderização JS -->
+            <div id="ohm-formula" class="text-center py-4 bg-gray-50 dark:bg-gray-700 rounded-xl mb-6 text-2xl overflow-x-auto"></div>
+
+            <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-primary p-4 rounded-r-xl">
+                <h3 class="font-bold mb-3">Teste Rápido</h3>
+                <p class="mb-3">Se a Tensão (U) aumentar e a Resistência (R) for mantida a mesma, o que ocorre com a Corrente (I)?</p>
+                <div class="space-y-2">
+                    <label class="flex items-center p-3 bg-white dark:bg-gray-800 rounded shadow-sm min-touch-target cursor-pointer">
+                        <input type="radio" name="chk2" value="certo" class="w-5 h-5 mr-3 text-primary">
+                        <span>Aumenta proporcionalmente.</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-white dark:bg-gray-800 rounded shadow-sm min-touch-target cursor-pointer">
+                        <input type="radio" name="chk2" value="errado" class="w-5 h-5 mr-3 text-primary">
+                        <span>Diminui e os fios esfriam.</span>
+                    </label>
+                </div>
+                <p id="feedback-chk2" class="text-sm font-bold mt-2 hidden"></p>
+                <button onclick="verificarChk2()" class="mt-4 min-touch-target w-full bg-success hover:bg-successDark text-white font-bold rounded-xl shadow transition-colors">
+                    Confirmar Resposta
+                </button>
+            </div>
+        </section>
+
+        <!-- ETAPA 4: Desafio Matemático -->
+        <section id="etapa4" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 hidden card-step">
+            <div class="flex items-center gap-3 mb-4 text-primary">
+                <i class="fas fa-calculator text-2xl"></i>
+                <h2 class="text-xl font-bold">4. Desafio: Lei de Coulomb</h2>
+            </div>
+            
+            <div id="coulomb-formula" class="text-center py-4 bg-gray-50 dark:bg-gray-700 rounded-xl mb-6 text-lg overflow-x-auto"></div>
+
+            <div class="mb-6 text-lg bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-xl border border-yellow-200 dark:border-yellow-700">
+                <p class="mb-2 font-bold text-sm text-yellow-700 dark:text-yellow-400">
+                    <i class="fas fa-hand-pointer mr-1"></i> Toque nas grandezas abaixo para coletá-las!
+                </p>
+                <p class="leading-loose">
+                    Calcule a força elétrica entre as cargas 
+                    <span class="dado-coletavel px-2 py-1 bg-white dark:bg-gray-800 border-2 border-dashed border-primary rounded cursor-pointer font-bold transition-colors shadow-sm" data-id="q1" onclick="coletar(this)">Q1 = 3 x 10⁻⁶ C</span> 
+                    e 
+                    <span class="dado-coletavel px-2 py-1 bg-white dark:bg-gray-800 border-2 border-dashed border-primary rounded cursor-pointer font-bold transition-colors shadow-sm" data-id="q2" onclick="coletar(this)">Q2 = 2 x 10⁻⁶ C</span>, 
+                    separadas por uma distância de 
+                    <span class="dado-coletavel px-2 py-1 bg-white dark:bg-gray-800 border-2 border-dashed border-primary rounded cursor-pointer font-bold transition-colors shadow-sm" data-id="d" onclick="coletar(this)">d = 3 m</span>. 
+                    (Considere <span class="dado-coletavel px-2 py-1 bg-white dark:bg-gray-800 border-2 border-dashed border-primary rounded cursor-pointer font-bold transition-colors shadow-sm" data-id="k" onclick="coletar(this)">k = 9 x 10⁹</span>).
+                </p>
+                <div class="mt-3 text-right text-xs font-bold text-gray-500">Coletados: <span id="contador-coleta">0</span>/4</div>
+            </div>
+
+            <!-- Inputs da Resposta (Anti-erro) -->
+            <div id="area-resposta" class="opacity-30 pointer-events-none transition-opacity duration-300">
+                <h3 class="font-bold mb-3 text-center">Sua Resposta:</h3>
+                <div class="flex items-center justify-center gap-3 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                    <input type="number" id="input-base" class="w-20 text-center text-lg p-3 rounded-lg border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-800 focus:border-primary outline-none" placeholder="Base">
+                    <span class="font-bold text-xl">x 10</span>
+                    <div class="relative">
+                        <input type="number" id="input-exp" class="w-16 text-center text-sm p-2 rounded-lg border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-800 focus:border-primary outline-none absolute -top-8 left-0" placeholder="Exp">
+                    </div>
+                    <span class="font-bold text-xl ml-16">N</span>
+                </div>
+                
+                <button onclick="verificarDesafio()" class="min-touch-target w-full bg-primary hover:bg-primaryDark text-white font-bold rounded-xl shadow-lg transition-colors text-lg">
+                    <i class="fas fa-check-circle mr-2"></i> Resolver Módulo
+                </button>
+                <p id="erro-final" class="text-red-500 font-bold text-center mt-3 hidden"></p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FAB (Floating Action Button) de Ajuda -->
+    <button onclick="toggleBottomSheet()" class="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-xl flex items-center justify-center text-2xl hover:scale-110 transition-transform z-40" aria-label="Abrir Ajuda">
+        <i class="fas fa-calculator"></i>
+    </button>
+
+    <!-- Overlay do Bottom Sheet -->
+    <div id="bs-overlay" onclick="toggleBottomSheet()" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity"></div>
+
+    <!-- Bottom Sheet de Ajuda -->
+    <div id="bottom-sheet" class="bottom-sheet fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl z-50 p-6">
+        <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-life-ring text-primary"></i> Ferramentas e Dicas</h3>
+        
+        <div class="flex gap-4 mb-6">
+            <a href="https://mathda.com/calculator/pt" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-touch-target flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600">
+                <i class="fas fa-globe text-2xl mb-1 text-primary"></i> Web
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=advanced.scientific.calculator.calc991.plus&hl=pt_BR" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-touch-target flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600">
+                <i class="fab fa-android text-2xl mb-1 text-success"></i> Android
+            </a>
+            <a href="https://apps.apple.com/us/app/calculadora-cient%C3%ADfica-fx-991/id1673640297?l=pt_BR" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-touch-target flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600">
+                <i class="fab fa-apple text-2xl mb-1 text-gray-800 dark:text-gray-200"></i> iOS
+            </a>
+        </div>
+
+        <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 rounded-r-lg text-sm text-gray-800 dark:text-gray-200">
+            💡 Agrupe os números normais primeiro: (9 × 3 × 2) / 3². Depois, agrupe as bases 10 aplicando a regra (multiplicação soma, divisão subtrai): 10^(9 - 6 - 6). Junte os dois resultados. Lembre-se: Use a função ABS da calculadora para o módulo ||.
+        </div>
+        
+        <button onclick="toggleBottomSheet()" class="mt-6 w-full py-3 bg-gray-200 dark:bg-gray-700 font-bold rounded-xl min-touch-target">Fechar Ajuda</button>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div id="modal-sucesso" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300" id="modal-card">
+            <div class="w-20 h-20 bg-success text-white rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-lg">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-2">Parabéns!</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-8">Você dominou os princípios da eletricidade e resolveu a Lei de Coulomb com sucesso!</p>
+            
+            <div class="space-y-3">
+                <a href="index.html" class="block w-full bg-success hover:bg-successDark text-white font-bold py-4 rounded-xl min-touch-target transition-colors shadow-md">
+                    <i class="fas fa-home mr-2"></i> Voltar ao Dashboard
+                </a>
+                <button onclick="revisarModulo()" class="block w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-bold py-4 rounded-xl min-touch-target transition-colors">
+                    <i class="fas fa-redo mr-2"></i> Revisar Módulo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS MESTRES -->
+    <script>
+        // 1. Acessibilidade: Tamanho da Fonte
+        let rootFontSize = 16;
+        function alterarFonte(delta) {
+            rootFontSize += delta;
+            if (rootFontSize < 12) rootFontSize = 12;
+            if (rootFontSize > 24) rootFontSize = 24;
+            document.documentElement.style.fontSize = rootFontSize + 'px';
+        }
+
+        // 2. Acessibilidade: Alternar Tema (Dark/Light)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            html.classList.toggle('dark');
+            if (html.classList.contains('dark')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // 3. Renderização KaTeX via JS (Carregado após DOM)
+        document.addEventListener("DOMContentLoaded", () => {
+            // Render 1ª Lei de Ohm
+            katex.render("I = \\frac{U}{R}", document.getElementById('ohm-formula'), {
+                displayMode: true,
+                throwOnError: false
+            });
+            // Render Lei de Coulomb
+            katex.render("F = k \\cdot \\frac{|Q_1 \\cdot Q_2|}{d^2}", document.getElementById('coulomb-formula'), {
+                displayMode: true,
+                throwOnError: false
+            });
+        });
+
+        // 4. Lógica de Progressão das Etapas
+        function scrollPara(id) {
+            setTimeout(() => {
+                document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function liberarEtapa2() {
+            const et2 = document.getElementById('etapa2');
+            et2.classList.remove('hidden');
+            et2.classList.add('fade-in');
+            scrollPara('etapa2');
+        }
+
+        // 5. Laboratório: Atrito
+        function animarAtrito() {
+            const electrons = document.querySelectorAll('.electron');
+            electrons.forEach(el => {
+                el.classList.add('moving-electron');
+            });
+            document.getElementById('msg-atrito').classList.remove('hidden');
+            document.getElementById('item-ambar').classList.replace('bg-yellow-400', 'bg-blue-300'); // Efeito visual de carga negativa
+            document.getElementById('item-la').classList.replace('bg-orange-200', 'bg-red-200'); // Fica positivo
+        }
+
+        // 6. Laboratório: Forças
+        function testarForcas() {
+            const c1 = document.getElementById('carga1').value;
+            const c2 = document.getElementById('carga2').value;
+            const e1 = document.getElementById('esfera1');
+            const e2 = document.getElementById('esfera2');
+            const msg = document.getElementById('msg-forcas');
+
+            // Reset classes
+            e1.className = 'sphere w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md z-10';
+            e2.className = 'sphere w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md z-10';
+
+            // Cores baseadas no sinal
+            e1.classList.add(c1 === 'pos' ? 'bg-red-500' : 'bg-blue-500');
+            e1.innerText = c1 === 'pos' ? '+' : '-';
+            
+            e2.classList.add(c2 === 'pos' ? 'bg-red-500' : 'bg-blue-500');
+            e2.innerText = c2 === 'pos' ? '+' : '-';
+
+            // Timeout para permitir que o navegador aplique a classe base antes da animação
+            setTimeout(() => {
+                if (c1 === c2) {
+                    // Repulsão
+                    e1.classList.add('repel-left');
+                    e2.classList.add('repel-right');
+                    msg.innerText = "Cargas iguais: Repulsão!";
+                    msg.className = "text-center font-bold mb-4 h-6 text-red-500";
+                } else {
+                    // Atração
+                    e1.classList.add('attract-left');
+                    e2.classList.add('attract-right');
+                    msg.innerText = "Cargas opostas: Atração!";
+                    msg.className = "text-center font-bold mb-4 h-6 text-success";
+                }
+            }, 50);
+        }
+
+        // 7. Checkpoint 1 (Libera Etapa 3)
+        function verificarChk1() {
+            const selecionado = document.querySelector('input[name="chk1"]:checked');
+            const feed = document.getElementById('feedback-chk1');
+            if (!selecionado) {
+                feed.innerText = "Por favor, selecione uma opção.";
+                feed.className = "text-sm font-bold mt-2 text-yellow-600 block";
+                return;
+            }
+            if (selecionado.value === 'certo') {
+                feed.innerText = "Correto! Liberando próxima etapa...";
+                feed.className = "text-sm font-bold mt-2 text-success block";
+                
+                const et3 = document.getElementById('etapa3');
+                et3.classList.remove('hidden');
+                et3.classList.add('fade-in');
+                scrollPara('etapa3');
+                
+                // Desabilita as opções para não mudar mais
+                document.querySelectorAll('input[name="chk1"]').forEach(el => el.disabled = true);
+            } else {
+                feed.innerText = "Ops! Pense na função da borracha (isolante) e do cobre (condutor). Tente novamente.";
+                feed.className = "text-sm font-bold mt-2 text-red-500 block";
+            }
+        }
+
+        // 8. Checkpoint 2 (Libera Etapa 4)
+        function verificarChk2() {
+            const selecionado = document.querySelector('input[name="chk2"]:checked');
+            const feed = document.getElementById('feedback-chk2');
+            if (!selecionado) {
+                feed.innerText = "Por favor, selecione uma opção.";
+                feed.className = "text-sm font-bold mt-2 text-yellow-600 block";
+                return;
+            }
+            if (selecionado.value === 'certo') {
+                feed.innerText = "Exato! Tensão e Corrente são diretamente proporcionais (I = U/R).";
+                feed.className = "text-sm font-bold mt-2 text-success block";
+                
+                const et4 = document.getElementById('etapa4');
+                et4.classList.remove('hidden');
+                et4.classList.add('fade-in');
+                scrollPara('etapa4');
+                
+                document.querySelectorAll('input[name="chk2"]').forEach(el => el.disabled = true);
+            } else {
+                feed.innerText = "Se a pressão (U) aumenta e a barreira (R) é a mesma, o fluxo (I) deve aumentar. Tente novamente.";
+                feed.className = "text-sm font-bold mt-2 text-red-500 block";
+            }
+        }
+
+        // 9. Coleta de Dados (Etapa 4)
+        let dadosColetados = new Set();
+        function coletar(elemento) {
+            const id = elemento.getAttribute('data-id');
+            if (!dadosColetados.has(id)) {
+                dadosColetados.add(id);
+                // Feedback visual de coletado
+                elemento.classList.replace('bg-white', 'bg-success');
+                elemento.classList.replace('dark:bg-gray-800', 'dark:bg-successDark');
+                elemento.classList.replace('border-primary', 'border-success');
+                elemento.classList.replace('text-gray-800', 'text-white');
+                elemento.classList.replace('dark:text-gray-100', 'text-white');
+                
+                document.getElementById('contador-coleta').innerText = dadosColetados.size;
+
+                if (dadosColetados.size === 4) {
+                    const areaResposta = document.getElementById('area-resposta');
+                    areaResposta.classList.remove('opacity-30', 'pointer-events-none');
+                    // Scroll leve
+                    setTimeout(() => {
+                        areaResposta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                }
+            }
+        }
+
+        // 10. Validação do Desafio Final e LocalStorage (CRÍTICO)
+        function verificarDesafio() {
+            const base = document.getElementById('input-base').value.trim();
+            const exp = document.getElementById('input-exp').value.trim();
+            const erroFeed = document.getElementById('erro-final');
+
+            // Resposta Esperada: F = (9 * 3 * 2) / 3^2 * 10^(9 -6 -6) = 54 / 9 * 10^-3 = 6 x 10^-3 N
+            if (base === "6" && exp === "-3") {
+                erroFeed.classList.add('hidden');
+                
+                // SALVANDO NO LOCALSTORAGE COMO SOLICITADO
+                localStorage.setItem('cps_mod1', JSON.stringify({concluido: true, score: 100}));
+
+                // Abrir Modal de Sucesso
+                const modal = document.getElementById('modal-sucesso');
+                const card = document.getElementById('modal-card');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    card.classList.remove('scale-95');
+                    card.classList.add('scale-100');
+                }, 50);
+
+            } else {
+                erroFeed.innerText = "Cálculo incorreto. Reveja as contas ou abra a Dica na calculadora ali embaixo!";
+                erroFeed.classList.remove('hidden');
+                erroFeed.classList.add('fade-in');
+            }
+        }
+
+        // 11. Controle do FAB (Bottom Sheet)
+        function toggleBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            const overlay = document.getElementById('bs-overlay');
+            
+            if (sheet.classList.contains('open')) {
+                sheet.classList.remove('open');
+                overlay.classList.add('hidden');
+            } else {
+                sheet.classList.add('open');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        // 12. Modal Ação: Revisar Módulo
+        function revisarModulo() {
+            const modal = document.getElementById('modal-sucesso');
+            modal.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+    </script>
+</body>
+</html>

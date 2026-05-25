@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light text-[16px]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Física Etec - Laboratório</title>
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'etec-blue': '#00569c',
+                        'etec-blue-dark': '#003e70',
+                        'success': '#22c55e',
+                        'gold': '#fbbf24',
+                        'bg-light': '#f3f4f6', 
+                        'bg-dark': '#0f172a', 
+                        'card-light': '#ffffff',
+                        'card-dark': '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX para Fórmulas Matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- HTML2Canvas & jsPDF para Exportação de Certificado -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Ajustes finos para Mobile-First e Touch */
+        * { -webkit-tap-highlight-color: transparent; }
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); }
+        .dark .glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(8px); }
+        .touch-target { min-width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; }
+        
+        /* Ocultando o Certificado para Renderização Off-screen */
+        #certificate-template { position: fixed; top: -9999px; left: -9999px; z-index: -100; }
+    </style>
+</head>
+<body class="bg-bg-light dark:bg-bg-dark text-slate-800 dark:text-gray-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Container Centralizado (Limita a largura em telas grandes para simular App) -->
+    <div class="max-w-md w-full mx-auto relative flex-1 pb-24">
+
+        <!-- ==========================================
+             1. HEADER (CABEÇALHO FIXO)
+        =========================================== -->
+        <header class="sticky top-0 z-40 glass shadow-sm border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex justify-between items-center">
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Física Lab</span>
+                <h1 id="header-greeting" class="text-lg font-bold text-etec-blue dark:text-blue-400 truncate w-40">
+                    Olá, Estudante
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-1">
+                <!-- Acessibilidade: Fonte -->
+                <button onclick="adjustFontSize(-1)" class="touch-target rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700" aria-label="Diminuir fonte">
+                    <span class="text-sm font-bold">A-</span>
+                </button>
+                <button onclick="adjustFontSize(1)" class="touch-target rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700" aria-label="Aumentar fonte">
+                    <span class="text-lg font-bold">A+</span>
+                </button>
+                <!-- Tema -->
+                <button onclick="toggleTheme()" class="touch-target rounded-full text-yellow-500 dark:text-blue-300 hover:bg-gray-200 dark:hover:bg-slate-700" aria-label="Alternar Tema">
+                    <i id="theme-icon" class="fas fa-moon text-xl"></i>
+                </button>
+                <!-- Configurações -->
+                <button onclick="openSettings()" class="touch-target rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700" aria-label="Configurações">
+                    <i class="fas fa-cog text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ==========================================
+             CONTEÚDO PRINCIPAL
+        =========================================== -->
+        <main class="p-4 space-y-6">
+
+            <!-- NOVO: SEÇÃO DE FORMATURA (Oculta até 5/5) -->
+            <section id="graduation-section" class="hidden bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 rounded-2xl p-6 shadow-lg border border-yellow-300 relative overflow-hidden text-white text-center">
+                <i class="fas fa-graduation-cap text-6xl text-white/20 absolute -right-2 -bottom-4"></i>
+                <h2 class="text-2xl font-bold mb-2 shadow-sm uppercase tracking-wider">Sua Formatura</h2>
+                <p class="text-sm font-medium mb-5 text-yellow-50">Parabéns! Você concluiu todos os Laboratórios. Seu certificado oficial está pronto!</p>
+                <div class="flex flex-col gap-3 relative z-10">
+                    <button onclick="downloadCertificate('jpg')" class="w-full touch-target bg-white text-yellow-700 font-bold rounded-xl shadow hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-image mr-2"></i> Baixar Certificado (JPG)
+                    </button>
+                    <button onclick="downloadCertificate('pdf')" class="w-full touch-target bg-yellow-800 text-white font-bold rounded-xl shadow hover:bg-yellow-900 transition-colors border border-yellow-700">
+                        <i class="fas fa-file-pdf mr-2"></i> Baixar Certificado (PDF)
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. PROGRESSO E GAMIFICAÇÃO -->
+            <section class="bg-card-light dark:bg-card-dark rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-sm font-bold uppercase text-gray-500 dark:text-gray-400">Progresso da Trilha</h2>
+                    <span id="progress-text" class="text-sm font-bold text-etec-blue dark:text-blue-400">0/5</span>
+                </div>
+                <!-- Barra de Progresso -->
+                <div class="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-3 mb-5 overflow-hidden">
+                    <div id="progress-bar" class="bg-success h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+
+                <!-- Galeria de Medalhas -->
+                <h3 class="text-xs font-bold text-center text-gray-400 dark:text-gray-500 mb-3 uppercase tracking-widest">Suas Conquistas</h3>
+                <div class="flex justify-between items-center px-1" id="badges-container">
+                    <!-- Preenchido via JS -->
+                </div>
+            </section>
+
+            <!-- 4. TRILHA DE APRENDIZAGEM -->
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 pl-1">Laboratórios</h2>
+                <div id="modules-container" class="space-y-4">
+                    <!-- Cartões gerados via JS (1 a 5) + Bateria Mista -->
+                </div>
+            </section>
+
+            <!-- 5. FERRAMENTAS DO ALUNO -->
+            <section class="bg-card-light dark:bg-card-dark rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-slate-700 mt-8">
+                <h2 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-100"><i class="fas fa-toolbox text-etec-blue mr-2"></i> Ferramentas</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    
+                    <!-- NOVO Botão: Fórmulas & Dicas -->
+                    <button onclick="openFormulas()" class="w-full touch-target justify-start px-4 bg-etec-blue/10 dark:bg-blue-900/30 text-etec-blue dark:text-blue-300 rounded-xl font-bold active:scale-95 transition-transform border border-etec-blue/20">
+                        <i class="fas fa-book-open w-8 text-center text-xl"></i> Fórmulas & Dicas (Cheat Sheet)
+                    </button>
+
+                    <a href="https://mathda.com/calculator/pt" target="_blank" class="touch-target justify-start px-4 bg-gray-100 dark:bg-slate-700 rounded-xl font-medium active:scale-95 transition-transform">
+                        <i class="fas fa-globe text-blue-500 w-8 text-center text-xl"></i> Calculadora Web (Mathda)
+                    </a>
+                    <a href="https://play.google.com/store/apps/details?id=advanced.scientific.calculator.calc991.plus&hl=pt_BR" target="_blank" class="touch-target justify-start px-4 bg-gray-100 dark:bg-slate-700 rounded-xl font-medium active:scale-95 transition-transform">
+                        <i class="fab fa-android text-green-500 w-8 text-center text-xl"></i> App Android (Calc 991)
+                    </a>
+                    <a href="https://apps.apple.com/us/app/calculadora-cient%C3%ADfica-fx-991/id1673640297?l=pt_BR" target="_blank" class="touch-target justify-start px-4 bg-gray-100 dark:bg-slate-700 rounded-xl font-medium active:scale-95 transition-transform">
+                        <i class="fab fa-apple text-gray-800 dark:text-gray-200 w-8 text-center text-xl"></i> App iOS (Calc FX-991)
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==========================================
+         MODAIS
+    =========================================== -->
+
+    <!-- 1. MODAL DE BOAS VINDAS -->
+    <div id="welcome-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/40 backdrop-blur-md px-4">
+        <div class="bg-card-light dark:bg-card-dark rounded-3xl p-6 shadow-2xl max-w-sm w-full border border-gray-200 dark:border-slate-700 transform transition-all text-center">
+            <div class="w-20 h-20 bg-blue-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-rocket text-4xl text-etec-blue dark:text-blue-400"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">Bem-vindo(a) ao Laboratório de Física!</h2>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">Como devemos chamá-lo(a) nesta jornada?</p>
+            
+            <input type="text" id="user-name-input" placeholder="Digite seu nome..." class="w-full touch-target px-4 border-2 border-gray-300 dark:border-slate-600 rounded-xl bg-transparent dark:text-white focus:outline-none focus:border-etec-blue dark:focus:border-blue-400 mb-4 text-center font-bold text-lg">
+            
+            <button onclick="saveUser()" class="w-full touch-target bg-etec-blue hover:bg-etec-blue-dark text-white rounded-xl font-bold text-lg transition-colors shadow-lg shadow-blue-500/30">
+                Iniciar Jornada
+            </button>
+        </div>
+    </div>
+
+    <!-- 6. MODAL DE CONFIGURAÇÕES -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+        <div class="bg-card-light dark:bg-card-dark rounded-3xl p-6 shadow-2xl max-w-sm w-full border border-gray-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100"><i class="fas fa-cog mr-2"></i> Configurações</h2>
+                <button onclick="closeSettings()" class="touch-target rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-10 h-10 min-w-0 min-h-0">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <button onclick="softReset()" class="w-full touch-target justify-center gap-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500 text-yellow-700 dark:text-yellow-400 rounded-xl font-bold transition-colors">
+                    <i class="fas fa-rotate-left"></i> Modo Revisão (Soft Reset)
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-400 px-2 text-center leading-relaxed">
+                    Tranca as aulas para você refazer os exercícios, mas <b>mantém seu nome e as medalhas</b> intactas!
+                </p>
+
+                <hr class="border-gray-200 dark:border-slate-700 my-2">
+
+                <button onclick="hardReset()" class="w-full touch-target justify-center gap-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/30 transition-colors">
+                    <i class="fas fa-trash-alt"></i> Apagar Memória (Hard Reset)
+                </button>
+                <p class="text-xs text-gray-500 dark:text-gray-400 px-2 text-center leading-relaxed">
+                    Apaga 100% dos dados. Volta à estaca zero.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHEAT SHEET (Fórmulas) -->
+    <div id="formulas-modal" class="fixed inset-0 z-50 hidden flex-col bg-bg-light dark:bg-bg-dark h-[100dvh]">
+        <header class="glass shadow-sm border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-etec-blue dark:text-blue-400"><i class="fas fa-book-open mr-2"></i> Cheat Sheet</h2>
+            <button onclick="closeFormulas()" class="touch-target rounded-full bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 w-10 h-10 min-w-0 min-h-0">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="formulas-content">
+            <!-- KaTeX irá renderizar as fórmulas automaticamente usando o auto-render -->
+            <div class="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-2 border-b border-gray-100 dark:border-slate-600 pb-1">Mód. 1: Eletrostática</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">$$F = k \cdot \frac{|Q_1 \cdot Q_2|}{d^2}$$</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-2 border-b border-gray-100 dark:border-slate-600 pb-1">Mód. 2: Magnetismo</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">$$F_{mag} = q \cdot v \cdot B \cdot \sin(\theta)$$</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-2 border-b border-gray-100 dark:border-slate-600 pb-1">Mód. 3: Eletrodinâmica (Ohm)</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">$$U = R \cdot i$$ <br> $$P = U \cdot i$$</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-2 border-b border-gray-100 dark:border-slate-600 pb-1">Mód. 4: Transformadores</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">$$\frac{V_p}{V_s} = \frac{N_p}{N_s}$$</p>
+            </div>
+            <div class="bg-white dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-2 border-b border-gray-100 dark:border-slate-600 pb-1">Mód. 5: Energia e Consumo</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">$$E = P \cdot \Delta t$$ <br> $$\text{Custo} = E_{kWh} \cdot \text{Tarifa}$$</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         TEMPLATE DO CERTIFICADO (OFF-SCREEN)
+    =========================================== -->
+    <div id="certificate-template" class="bg-white w-[1000px] h-[700px] flex items-center justify-center p-8">
+        <div class="w-full h-full border-[12px] border-double border-etec-blue-dark relative flex flex-col items-center justify-center p-12 text-center bg-[#fdfdfc]">
+            <!-- Marcas d'água e Ornamentos -->
+            <div class="absolute top-4 left-4 w-16 h-16 border-t-4 border-l-4 border-gold"></div>
+            <div class="absolute top-4 right-4 w-16 h-16 border-t-4 border-r-4 border-gold"></div>
+            <div class="absolute bottom-4 left-4 w-16 h-16 border-b-4 border-l-4 border-gold"></div>
+            <div class="absolute bottom-4 right-4 w-16 h-16 border-b-4 border-r-4 border-gold"></div>
+
+            <i class="fas fa-atom text-blue-100 text-[200px] absolute opacity-30"></i>
+
+            <h1 class="text-5xl font-black text-etec-blue-dark mb-2 tracking-widest relative z-10" style="font-family: 'Times New Roman', serif;">CERTIFICADO DE CONCLUSÃO</h1>
+            <h2 class="text-xl font-bold text-gray-500 uppercase tracking-widest mb-10 relative z-10">Laboratório de Física - Ensino Médio Técnico</h2>
+
+            <p class="text-2xl text-gray-700 mb-6 relative z-10">Certificamos que o(a) aluno(a)</p>
+            <h3 id="cert-name" class="text-5xl text-gold font-bold mb-8 italic border-b-2 border-gray-300 pb-2 inline-block px-10 relative z-10">Nome do Aluno</h3>
+            
+            <p class="text-xl text-gray-700 max-w-2xl mb-10 leading-relaxed relative z-10">
+                Concluiu com pleno êxito todos os módulos de conhecimento, dominando os conceitos de Eletrostática, Magnetismo, Eletrodinâmica, Indução Eletromagnética e Consumo de Energia.
+            </p>
+
+            <!-- Medalhas no Certificado -->
+            <div class="flex gap-6 mb-10 relative z-10">
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shadow-inner"><i class="fas fa-bolt text-2xl text-orange-500"></i></div>
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shadow-inner"><i class="fas fa-magnet text-2xl text-red-500"></i></div>
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shadow-inner"><i class="fas fa-atom text-2xl text-blue-500"></i></div>
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shadow-inner"><i class="fas fa-plug text-2xl text-purple-500"></i></div>
+                <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shadow-inner"><i class="fas fa-battery-full text-2xl text-success"></i></div>
+            </div>
+
+            <div class="flex justify-between w-full px-16 relative z-10 mt-auto">
+                <div class="text-left">
+                    <p class="text-gray-500 font-bold">Data de Início</p>
+                    <p id="cert-start-date" class="text-lg text-gray-800 font-bold border-t border-gray-400 pt-1 mt-2">--/--/----</p>
+                </div>
+                <!-- Selo -->
+                <div class="text-etec-blue-dark text-6xl">
+                    <i class="fas fa-award"></i>
+                </div>
+                <div class="text-right">
+                    <p class="text-gray-500 font-bold">Data de Conclusão</p>
+                    <p id="cert-end-date" class="text-lg text-gray-800 font-bold border-t border-gray-400 pt-1 mt-2">--/--/----</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LÓGICA DO APLICATIVO (JAVASCRIPT)
+    =========================================== -->
+    <script>
+        // --- DADOS DA APLICAÇÃO ---
+        const moduleDefs = [
+            { id: 1, key: 'cps_mod1', title: 'A Faísca', desc: 'Matéria e Eletrostática', icon: 'fa-bolt', url: 'modulo1.html' },
+            { id: 2, key: 'cps_mod2', title: 'O Poder Invisível', desc: 'Magnetismo', icon: 'fa-magnet', url: 'modulo2.html' },
+            { id: 3, key: 'cps_mod3', title: 'A Dança dos Elétrons', desc: 'Eletrodinâmica', icon: 'fa-atom', url: 'modulo3.html' },
+            { id: 4, key: 'cps_mod4', title: 'A Magia da Indução', desc: 'Transformadores', icon: 'fa-plug', url: 'modulo4.html' },
+            { id: 5, key: 'cps_mod5', title: 'A Conta de Luz', desc: 'Potência e Consumo', icon: 'fa-battery-full', url: 'modulo5.html' }
+        ];
+
+        const badgeColors = ['text-orange-500', 'text-red-500', 'text-blue-500', 'text-purple-500', 'text-success'];
+
+        let fontSizeBase = 16;
+        let isDarkMode = false;
+        let totalCompleted = 0;
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener("DOMContentLoaded", () => {
+            initTheme();
+            checkUser();
+            
+            // Configurar KaTeX uma vez para o Modal (aguarda um pouco para as fontes carregarem)
+            setTimeout(() => {
+                renderMathInElement(document.getElementById('formulas-content'), {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ]
+                });
+            }, 500);
+        });
+
+        function checkUser() {
+            const userStr = localStorage.getItem('cps_user');
+            if (!userStr) {
+                document.getElementById('welcome-modal').classList.replace('hidden', 'flex');
+            } else {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (!user.nome || user.nome.trim() === "") throw new Error("Nome vazio");
+                    document.getElementById('header-greeting').innerText = `Olá, ${user.nome.split(' ')[0]}`;
+                    loadDashboard();
+                } catch (e) {
+                    document.getElementById('welcome-modal').classList.replace('hidden', 'flex');
+                }
+            }
+        }
+
+        function saveUser() {
+            const input = document.getElementById('user-name-input');
+            const nome = input.value.trim();
+            if (nome === "") {
+                input.classList.add('border-red-500');
+                setTimeout(() => input.classList.remove('border-red-500'), 1000);
+                return;
+            }
+            localStorage.setItem('cps_user', JSON.stringify({ nome: nome }));
+            // NOVO: Salvando Data de Início
+            localStorage.setItem('cps_startDate', new Date().toLocaleDateString('pt-BR'));
+            
+            document.getElementById('welcome-modal').classList.replace('flex', 'hidden');
+            checkUser(); 
+        }
+
+        // --- RENDERIZAÇÃO DO DASHBOARD ---
+        function loadDashboard() {
+            syncBadges();
+            renderBadges();
+            renderModules();
+            checkGraduation();
+        }
+
+        function syncBadges() {
+            let badges = JSON.parse(localStorage.getItem('cps_badges')) || {};
+            moduleDefs.forEach(mod => {
+                const modData = JSON.parse(localStorage.getItem(mod.key));
+                if (modData && modData.concluido === true) {
+                    badges[mod.key] = true;
+                }
+            });
+            localStorage.setItem('cps_badges', JSON.stringify(badges));
+        }
+
+        function renderBadges() {
+            const badges = JSON.parse(localStorage.getItem('cps_badges')) || {};
+            const container = document.getElementById('badges-container');
+            container.innerHTML = '';
+            
+            totalCompleted = 0;
+
+            moduleDefs.forEach((mod, index) => {
+                const currentModData = JSON.parse(localStorage.getItem(mod.key));
+                if (currentModData && currentModData.concluido) totalCompleted++;
+
+                const isUnlocked = badges[mod.key] === true;
+                const badgeHTML = `
+                    <div class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-gray-100 dark:bg-slate-700 border-2 ${isUnlocked ? 'border-gray-200 dark:border-slate-600 shadow-inner' : 'border-transparent opacity-40 grayscale'} transition-all">
+                        <i class="fas ${mod.icon} text-xl ${isUnlocked ? badgeColors[index] : 'text-gray-400'}"></i>
+                    </div>
+                `;
+                container.innerHTML += badgeHTML;
+            });
+
+            document.getElementById('progress-text').innerText = `${totalCompleted}/5`;
+            document.getElementById('progress-bar').style.width = `${(totalCompleted / 5) * 100}%`;
+        }
+
+        function renderModules() {
+            const container = document.getElementById('modules-container');
+            container.innerHTML = '';
+
+            let isPreviousCompleted = true; // Mod 1 sempre livre
+
+            // 5 MÓDULOS PADRÕES
+            moduleDefs.forEach((mod, index) => {
+                const modData = JSON.parse(localStorage.getItem(mod.key)) || { concluido: false };
+                const isUnlocked = isPreviousCompleted;
+                const isCompleted = modData.concluido === true;
+
+                const card = document.createElement(isUnlocked ? 'a' : 'div');
+                if (isUnlocked) {
+                    card.href = mod.url;
+                    card.className = "block bg-card-light dark:bg-card-dark rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-slate-700 active:scale-[0.98] transition-transform flex items-center relative overflow-hidden";
+                } else {
+                    card.className = "block bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 opacity-60 flex items-center select-none";
+                }
+
+                if (isCompleted) card.classList.add('border-success', 'dark:border-success');
+
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center ${isUnlocked ? 'bg-blue-100 dark:bg-slate-700 text-etec-blue dark:text-blue-400' : 'bg-gray-200 dark:bg-slate-700 text-gray-400'} shrink-0 mr-4">
+                        <i class="fas ${mod.icon} text-2xl"></i>
+                    </div>
+                    <div class="flex-1 pr-2">
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 leading-tight mb-1">Módulo ${mod.id}: ${mod.title}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${mod.desc}</p>
+                    </div>
+                    <div class="shrink-0">
+                        ${isUnlocked 
+                            ? `<div class="w-10 h-10 rounded-full flex items-center justify-center ${isCompleted ? 'bg-success text-white' : 'bg-gray-100 dark:bg-slate-700 text-etec-blue dark:text-white'} shadow-sm"><i class="fas ${isCompleted ? 'fa-check' : 'fa-play'} ml-${isCompleted ? '0' : '1'}"></i></div>` 
+                            : `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-slate-700 text-gray-400"><i class="fas fa-lock"></i></div>`
+                        }
+                    </div>
+                    ${isCompleted ? `<div class="absolute top-0 right-0 w-2 h-full bg-success"></div>` : ''}
+                `;
+                container.appendChild(card);
+                isPreviousCompleted = isCompleted;
+            });
+
+            // NOVO: 6º CARD (DESAFIO FINAL - BATERIA MISTA)
+            const isChallengeUnlocked = (totalCompleted === 5);
+            const challengeCard = document.createElement(isChallengeUnlocked ? 'a' : 'div');
+            
+            if (isChallengeUnlocked) {
+                challengeCard.href = 'exercicios.html';
+                challengeCard.className = "block bg-gradient-to-r from-etec-blue to-purple-600 rounded-2xl p-4 shadow-lg active:scale-[0.98] transition-transform flex items-center relative overflow-hidden mt-4";
+            } else {
+                challengeCard.className = "block bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 opacity-60 flex items-center select-none mt-4";
+            }
+
+            challengeCard.innerHTML = `
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center ${isChallengeUnlocked ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-400'} shrink-0 mr-4">
+                    <i class="fas fa-fire text-2xl"></i>
+                </div>
+                <div class="flex-1 pr-2">
+                    <h3 class="text-sm font-bold ${isChallengeUnlocked ? 'text-white' : 'text-gray-800 dark:text-gray-100'} leading-tight mb-1">BATERIA MISTA</h3>
+                    <p class="text-xs ${isChallengeUnlocked ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}">O Desafio dos 50</p>
+                </div>
+                <div class="shrink-0">
+                    ${isChallengeUnlocked 
+                        ? `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-white text-purple-600 shadow-sm"><i class="fas fa-play ml-1"></i></div>` 
+                        : `<div class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-slate-700 text-gray-400"><i class="fas fa-lock"></i></div>`
+                    }
+                </div>
+            `;
+            container.appendChild(challengeCard);
+        }
+
+        // --- FORMATURA E CERTIFICADO ---
+        function checkGraduation() {
+            const gradSection = document.getElementById('graduation-section');
+            if (totalCompleted === 5) {
+                gradSection.classList.remove('hidden');
+                
+                // Grava data de fim, se não existir
+                if (!localStorage.getItem('cps_endDate')) {
+                    localStorage.setItem('cps_endDate', new Date().toLocaleDateString('pt-BR'));
+                }
+                
+                // Preenche os dados no HTML do certificado invisível
+                const user = JSON.parse(localStorage.getItem('cps_user') || '{"nome":"Estudante"}');
+                const startDate = localStorage.getItem('cps_startDate') || 'Desconhecido';
+                const endDate = localStorage.getItem('cps_endDate');
+
+                document.getElementById('cert-name').innerText = user.nome;
+                document.getElementById('cert-start-date').innerText = startDate;
+                document.getElementById('cert-end-date').innerText = endDate;
+            } else {
+                gradSection.classList.add('hidden');
+            }
+        }
+
+        async function generateCertCanvas() {
+            const certElement = document.getElementById('certificate-template');
+            // html2canvas lê o elemento mesmo com left/top negativos se estiver no DOM
+            const canvas = await html2canvas(certElement, {
+                scale: 2, // Alta resolução
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            });
+            return canvas;
+        }
+
+        async function downloadCertificate(type) {
+            try {
+                // Alerta nativo leve para dar feedback que está gerando
+                const btnIcon = event.currentTarget.querySelector('i');
+                const originalClass = btnIcon.className;
+                btnIcon.className = 'fas fa-spinner fa-spin mr-2';
+
+                const canvas = await generateCertCanvas();
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                if (type === 'jpg') {
+                    const link = document.createElement('a');
+                    link.download = 'Certificado_Fisica_Etec.jpg';
+                    link.href = imgData;
+                    link.click();
+                } else if (type === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    // Certificado em formato paisagem (landscape) ajustado ao tamanho do canvas
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'px',
+                        format: [canvas.width, canvas.height]
+                    });
+                    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+                    pdf.save('Certificado_Fisica_Etec.pdf');
+                }
+                
+                // Restaura icone
+                btnIcon.className = originalClass;
+            } catch (error) {
+                console.error("Erro ao gerar certificado", error);
+                alert("Houve um erro ao gerar o certificado. Tente novamente.");
+            }
+        }
+
+        // --- CHEAT SHEET (FÓRMULAS) ---
+        function openFormulas() {
+            document.getElementById('formulas-modal').classList.replace('hidden', 'flex');
+        }
+
+        function closeFormulas() {
+            document.getElementById('formulas-modal').classList.replace('flex', 'hidden');
+        }
+
+        // --- ACESSIBILIDADE E TEMA ---
+        function initTheme() {
+            if (localStorage.getItem('cps_theme') === 'dark' || (!('cps_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                isDarkMode = true;
+            } else {
+                document.documentElement.classList.remove('dark');
+                isDarkMode = false;
+            }
+            updateThemeIcon();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('cps_theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('cps_theme', 'light');
+            }
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            icon.className = isDarkMode ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+        }
+
+        function adjustFontSize(step) {
+            fontSizeBase += step * 2;
+            if (fontSizeBase < 12) fontSizeBase = 12;
+            if (fontSizeBase > 24) fontSizeBase = 24;
+            document.documentElement.style.fontSize = `${fontSizeBase}px`;
+        }
+
+        // --- CONFIGURAÇÕES (RESETS) ---
+        function openSettings() { document.getElementById('settings-modal').classList.replace('hidden', 'flex'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.replace('flex', 'hidden'); }
+
+        function softReset() {
+            if (confirm("MODO REVISÃO: Isso trancará as aulas, mas manterá seu Nome e suas Medalhas intactas. Deseja continuar?")) {
+                moduleDefs.forEach(mod => localStorage.removeItem(mod.key));
+                localStorage.removeItem('cps_endDate'); // Apaga data de fim
+                alert("Memória de módulos limpa. Aulas trancadas. Bom estudo!");
+                location.reload();
+            }
+        }
+
+        function hardReset() {
+            if (confirm("ATENÇÃO: Isso apagará SEU NOME, SUAS MEDALHAS e todo o progresso! A ação não pode ser desfeita. Tem certeza?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // --- ÁREA DE TESTES (Descomente no console para forçar a vitória) ---
+        // window.cheatWin = () => { [1,2,3,4,5].forEach(i => localStorage.setItem('cps_mod'+i, JSON.stringify({concluido: true}))); location.reload(); }
+    </script>
+</body>
+</html>

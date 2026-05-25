@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Módulo 4 - Eletromagnetismo | Física Web App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração do Tailwind para Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        indigo: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- KaTeX CSS e JS (Renderização Explícita apenas) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Ajustes Mobile-First e Dark Mode para o KaTeX */
+        html { -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* Garantir contraste adequado nas fórmulas matemáticas no dark mode */
+        .dark .katex { color: #f3f4f6; } 
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex flex-col text-gray-800 dark:text-gray-100">
+
+    <!-- App Bar -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm p-4 sticky top-0 z-30 flex justify-between items-center transition-colors duration-300">
+        <a href="index.html" class="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100">
+            <i class="fas fa-arrow-left text-lg"></i>
+        </a>
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">Módulo 4</h1>
+        <div class="flex gap-2">
+            <button onclick="toggleTheme()" class="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100">
+                <i class="fas fa-moon dark:hidden text-lg"></i>
+                <i class="fas fa-sun hidden dark:block text-lg text-yellow-400"></i>
+            </button>
+            <button onclick="toggleBottomSheet()" class="w-12 h-12 flex items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50 hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors text-indigo-600 dark:text-indigo-300">
+                <i class="fas fa-life-ring text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-md w-full mx-auto p-5 pb-24">
+        
+        <!-- Header do Tópico -->
+        <div class="mb-6">
+            <span class="inline-block py-1 px-3 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 text-sm font-bold mb-2">Eletromagnetismo</span>
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-gray-100">Transformadores</h2>
+            <p class="mt-2 text-gray-600 dark:text-gray-300 font-medium">
+                Entenda como a tensão é modificada para viabilizar a transmissão de energia e minimizar perdas por Efeito Joule.
+            </p>
+        </div>
+
+        <!-- Card de Teoria -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6 transition-colors duration-300">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <i class="fas fa-bolt text-yellow-500"></i> Conceito Chave
+            </h3>
+            <p class="text-sm text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                Nas linhas de transmissão, usamos transformadores para <strong class="text-indigo-600 dark:text-indigo-400">elevar a tensão</strong> (Volts) e <strong class="text-indigo-600 dark:text-indigo-400">diminuir a corrente</strong> (Amperes). Como o calor perdido (<strong class="text-gray-800 dark:text-gray-100">Efeito Joule</strong>) aumenta com o quadrado da corrente, essa estratégia reduz drasticamente o desperdício de energia.
+            </p>
+            
+            <div class="h-px w-full bg-gray-200 dark:bg-gray-700 my-4"></div>
+
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">A Equação do Transformador</h3>
+            
+            <!-- Renderização do KaTeX via JS -->
+            <div id="katex-transformer" class="text-center text-xl my-4 text-gray-800 dark:text-gray-100 font-bold overflow-x-auto"></div>
+            
+            <ul class="space-y-3 mt-4">
+                <li class="flex items-center gap-3">
+                    <span class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 font-bold text-gray-800 dark:text-gray-100">Up</span>
+                    <span class="text-gray-700 dark:text-gray-300 text-sm">Tensão no Primário (V)</span>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 font-bold text-gray-800 dark:text-gray-100">Us</span>
+                    <span class="text-gray-700 dark:text-gray-300 text-sm">Tensão no Secundário (V)</span>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 font-bold text-gray-800 dark:text-gray-100">Np</span>
+                    <span class="text-gray-700 dark:text-gray-300 text-sm">Espiras Primárias (Voltas)</span>
+                </li>
+                <li class="flex items-center gap-3">
+                    <span class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 font-bold text-gray-800 dark:text-gray-100">Ns</span>
+                    <span class="text-gray-700 dark:text-gray-300 text-sm">Espiras Secundárias (Voltas)</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Card de Desafio Prático -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <i class="fas fa-calculator text-indigo-500"></i> Desafio Analítico
+            </h3>
+            
+            <p class="text-gray-700 dark:text-gray-300 font-medium mb-6">
+                Um transformador possui um enrolamento primário de <strong class="text-gray-900 dark:text-gray-100">100 espiras (Np)</strong> ligado a uma rede de <strong class="text-gray-900 dark:text-gray-100">120 V (Up)</strong>. Seu secundário possui <strong class="text-gray-900 dark:text-gray-100">500 espiras (Ns)</strong>.<br><br>
+                Qual será a tensão induzida no secundário <strong class="text-gray-900 dark:text-gray-100">(Us)</strong>?<br>
+                <span class="text-sm text-indigo-600 dark:text-indigo-400 font-bold mt-2 inline-block">ATENÇÃO: Informe a resposta em Notação Científica!</span>
+            </p>
+
+            <div class="space-y-4">
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Formato: Base × 10^(Expoente)</label>
+                
+                <div class="flex items-center gap-3 justify-center">
+                    <input type="number" id="baseInput" placeholder="Base" class="w-24 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[48px] text-center font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-colors shadow-inner">
+                    <span class="text-xl font-bold text-gray-800 dark:text-gray-100">× 10</span>
+                    <input type="number" id="exponentInput" placeholder="Exp." class="w-20 p-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-h-[48px] text-center font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-colors shadow-inner">
+                </div>
+                
+                <button onclick="verifyAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 mt-4 rounded-xl min-h-[48px] transition-colors shadow-md active:scale-95 transform duration-150 text-lg">
+                    Calcular Tensão
+                </button>
+            </div>
+
+            <!-- Container de Feedback -->
+            <div id="feedback" class="hidden mt-6 p-4 rounded-xl text-center font-bold min-h-[48px] flex flex-col items-center justify-center"></div>
+        </div>
+
+        <!-- Botão Navegação -->
+        <a href="index.html" class="mt-8 flex items-center justify-center w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-bold py-4 rounded-xl min-h-[48px] transition-colors shadow-sm">
+            Voltar ao Dashboard
+        </a>
+
+    </main>
+
+    <!-- Overlay escuro para o Bottom Sheet -->
+    <div id="bottom-sheet-overlay" class="fixed inset-0 bg-black/60 z-40 hidden opacity-0 transition-opacity duration-300" onclick="toggleBottomSheet()"></div>
+
+    <!-- Bottom Sheet de Ajuda -->
+    <div id="bottom-sheet" class="bottom-sheet fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 rounded-t-3xl shadow-2xl z-50 p-6 transform translate-y-full transition-transform duration-300">
+        <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100"><i class="fas fa-life-ring text-blue-600"></i> Ferramentas e Dicas</h3>
+        
+        <div class="flex gap-4 mb-6">
+            <a href="https://mathda.com/calculator/pt" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-h-[64px] flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 transition-colors">
+                <i class="fas fa-globe text-2xl mb-1 text-blue-600"></i> Web
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=advanced.scientific.calculator.calc991.plus&hl=pt_BR" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-h-[64px] flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 transition-colors">
+                <i class="fab fa-android text-2xl mb-1 text-green-500"></i> Android
+            </a>
+            <a href="https://apps.apple.com/us/app/calculadora-cient%C3%ADfica-fx-991/id1673640297?l=pt_BR" target="_blank" class="flex-1 bg-gray-100 dark:bg-gray-700 p-3 rounded-xl text-center text-sm font-bold min-h-[64px] flex flex-col justify-center items-center hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 transition-colors">
+                <i class="fab fa-apple text-2xl mb-1 text-gray-800 dark:text-gray-200"></i> iOS
+            </a>
+        </div>
+
+        <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 rounded-r-lg text-sm text-gray-800 dark:text-gray-200">
+            💡 Multiplique a tensão de entrada (Up) pelas espiras da saída (Ns) e divida pelas espiras da entrada (Np): (120 × 500) ÷ 100. Se o resultado der 600, escreva-o em notação científica. Dica: A vírgula anda duas casas para a esquerda, então a base fica 6 e o expoente fica positivo!
+        </div>
+        
+        <button onclick="toggleBottomSheet()" class="mt-6 w-full py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-bold rounded-xl min-h-[48px]">Fechar Ajuda</button>
+    </div>
+
+    <!-- Scripts da Aplicação -->
+    <script>
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Renderização explícita da fórmula do Transformador via KaTeX (Regra 3)
+            const formulaStr = "\\frac{U_p}{U_s} = \\frac{N_p}{N_s}";
+            katex.render(formulaStr, document.getElementById('katex-transformer'), {
+                throwOnError: false,
+                displayMode: true
+            });
+
+            // Configuração do Dark Mode baseado na preferência ou localStorage
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // --- LÓGICA DO DARK MODE ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        }
+
+        // --- LÓGICA DO BOTTOM SHEET ---
+        function toggleBottomSheet() {
+            const sheet = document.getElementById('bottom-sheet');
+            const overlay = document.getElementById('bottom-sheet-overlay');
+            
+            if (sheet.classList.contains('translate-y-full')) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    sheet.classList.remove('translate-y-full');
+                }, 10);
+            } else {
+                sheet.classList.add('translate-y-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // --- LÓGICA DE VALIDAÇÃO E PERSISTÊNCIA ---
+        function verifyAnswer() {
+            const baseVal = document.getElementById('baseInput').value;
+            const expVal = document.getElementById('exponentInput').value;
+            const feedback = document.getElementById('feedback');
+            
+            feedback.classList.remove('hidden');
+
+            if (!baseVal || !expVal) {
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold min-h-[48px] flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-100 border border-yellow-200 dark:border-yellow-800";
+                feedback.innerHTML = '<i class="fas fa-exclamation-triangle mr-2 text-xl"></i> Preencha a base e o expoente!';
+                return;
+            }
+
+            const base = parseFloat(baseVal);
+            const exp = parseInt(expVal);
+            
+            // Lógica: Us = Up * (Ns / Np) = 120 * (500 / 100) = 120 * 5 = 600V.
+            // Em notação científica: 6 * 10^2
+            const isBaseCorrect = (base === 6);
+            const isExpCorrect = (exp === 2);
+
+            if (isBaseCorrect && isExpCorrect) {
+                // UI de Sucesso
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold min-h-[48px] flex items-center justify-center bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-100 border border-green-200 dark:border-green-800";
+                feedback.innerHTML = '<i class="fas fa-check-circle mr-2 text-xl"></i> Exato! 6 × 10² V (ou 600 V) gerados no secundário.';
+                
+                // Diretriz 4: Persistência exata no localStorage (CRÍTICO)
+                localStorage.setItem('cps_mod4', JSON.stringify({concluido: true, score: 100}));
+            } else {
+                // UI de Erro
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold min-h-[48px] flex flex-col items-center justify-center bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-100 border border-red-200 dark:border-red-800";
+                feedback.innerHTML = '<div class="flex items-center"><i class="fas fa-times-circle mr-2 text-xl"></i> Incorreto.</div> <div class="text-sm font-normal mt-1 text-red-700 dark:text-red-200">Abra a Boia Salva-vidas para ver a dica!</div>';
+            }
+        }
+    </script>
+</body>
+</html>
